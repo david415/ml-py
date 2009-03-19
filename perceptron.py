@@ -24,15 +24,46 @@ import sys
 
 class perceptron(object):
 
-    def __init__(self, values):
+    def __init__(self, length):
+        self.length = length
         self.weight = []
-        self.threshold = .5
-        self.learning_rate = .1
-        for value in values:
-            self.weight.append(value)
+        self.threshold = 0
+
+        # we add an extra input for required training bias
+        # it makes the math actually work
+        for elk in range(0,(length + 1)):
+            self.weight.append(0)
+
+    # add extra input for training bias
+    def adjust(self, input):
+        new = [1] + input
+        return new
 
     def eval(self, input):
+        input = self.adjust(input)
+        return dot_product(input, self.weight)
+
+    def train(self, input, expected, rate):
+        input = self.adjust(input)
+        output = self.eval(input)
+
+        if output != expected:
+            train_step = (expected - output) * rate
+
+            for elk in range(0,len(input)):
+                print "train elk: %s, input: %s" % (elk, input[elk])
+                train_todo = input[elk] * train_step
+                self.weight[elk] += train_todo
+
+
+class boolean_perceptron(perceptron):
+
+    def eval(self, input):
+        input = self.adjust(input)
+
+        #print "input %s, weights: %s" % (input,self.weight)
         sum = dot_product(input, self.weight)
+        
         if sum == self.threshold:
             output = 0
         if sum < self.threshold:
@@ -40,22 +71,6 @@ class perceptron(object):
         if sum > self.threshold:
             output = 1
         return output
-
-
-    # returns a boolean indicating whether 
-    # or not the output matches the expected output
-
-    def train(self, input, expected):
-        output = self.eval(input)
-        if output != expected:
-            for elk in range(0,len(input)):
-                if input[elk] == 1:
-                    change = (expected - output) * self.learning_rate
-                    print "%s %s" % (elk, change)
-                    self.weight[elk] += change
-            return False
-
-        return True
 
 
 def dot_product(a, b):
@@ -86,31 +101,35 @@ def main():
 #    input = [[1,1], [0,0], [0,1], [1,0]]
 
 # AND
-    expect = [1,0,0,0]
-    input = [[1,1], [0,0], [0,1], [1,0]]
+#    expect = [1,0,0,0]
+#    input = [[1,1], [0,0], [0,1], [1,0]]
+
+#    expect = [1,1,1,0,1,1]
+#    input = [[1,0,0], [1,0,1], [1,1,0], [1,1,1], [0,1,0], [0,0,0]]
+
+    input = [[1.0,], [1.5,], [2.0,]]
+    expect = [2.0, 3.0, 4.0]
 
 
-    # try to expose our perceptron to the training set 10 times
-    repeat = 10
+    # try to expose our perceptron to the training set 100 times
+    repeat = 1000
 
     # create a perceptron object and initialize weight values...
-    p = perceptron([0,0])
+    # pass input/weight list length
+    p = perceptron(3)
+    rate = 0.1
 
-    # repeatedly train with the training data set
-    for c in range(0,repeat):
-        results = []
-
+    for i in range(0,repeat):
         for elk in range(len(expect)):
-            results.append(p.train(input[elk], expect[elk]))
+
+            print "train input: %s expected: %s rate: %s" % (input[elk], expect[elk], rate)
+            p.train(input[elk], expect[elk], rate)
+            rate = rate * .99
+
             print(p.weight)
-            
-        # if the training doesn't return an error for the entire set
-        # then stop training
-        if False not in results:
-            break
+
 
     print "weights: %s" % p.weight
-
     print "training complete."
 
     # and now we use the trained perceptron
