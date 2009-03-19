@@ -21,6 +21,7 @@ __license__ = "Apache License"
 
 
 import sys
+import math
 
 class perceptron(object):
 
@@ -31,7 +32,7 @@ class perceptron(object):
 
         # we add an extra input for required training bias
         # it makes the math actually work
-        for elk in range(0,(length + 1)):
+        for elk in range(0,length+1):
             self.weight.append(0)
 
     # add extra input for training bias
@@ -42,18 +43,23 @@ class perceptron(object):
     def eval(self, input):
         input = self.adjust(input)
         return dot_product(input, self.weight)
-
+    
     def train(self, input, expected, rate):
-        input = self.adjust(input)
+        # call eval before adjusting
+        # because eval adjusts so it can be
+        # a public method
         output = self.eval(input)
+        input = self.adjust(input)
+        print "adjusted input: %s" % input
 
-        if output != expected:
-            train_step = (expected - output) * rate
+        train_step = (expected - output) * rate
 
-            for elk in range(0,len(input)):
-                print "train elk: %s, input: %s" % (elk, input[elk])
-                train_todo = input[elk] * train_step
-                self.weight[elk] += train_todo
+        for elk in range(0,len(input)):
+            train_todo = input[elk] * train_step
+            self.weight[elk] += train_todo
+
+        print "weights: %s" % self.weight
+        print "output: %s" % output
 
 
 class boolean_perceptron(perceptron):
@@ -74,6 +80,8 @@ class boolean_perceptron(perceptron):
 
 
 def dot_product(a, b):
+    assert len(a) == len(b)
+
     sum = 0
     i = 0
     while i < len(a):
@@ -86,51 +94,29 @@ def main():
 
     # training set :
     #  a list of expected values for each input list
-    # in this case the training set will teach boolean or
-
-# NAND - inverted output after training!?
-#    expect = [0,1,1,1]
-#    input = [[1,1], [0,0], [0,1], [1,0]]
-
-# OR
-#    expect = [1,0,1,1]
-#    input = [[1,1], [0,0], [0,1], [1,0]]
-
-# cannot implement NOR.. why not?
-#    expect = [0,1,0,0]
-#    input = [[1,1], [0,0], [0,1], [1,0]]
-
-# AND
-#    expect = [1,0,0,0]
-#    input = [[1,1], [0,0], [0,1], [1,0]]
-
-#    expect = [1,1,1,0,1,1]
-#    input = [[1,0,0], [1,0,1], [1,1,0], [1,1,1], [0,1,0], [0,0,0]]
 
     input = [[1.0,], [1.5,], [2.0,]]
     expect = [2.0, 3.0, 4.0]
 
 
     # try to expose our perceptron to the training set 100 times
-    repeat = 1000
+    repeat = 50000
 
     # create a perceptron object and initialize weight values...
     # pass input/weight list length
-    p = perceptron(3)
-    rate = 0.1
+    p = perceptron(1)
+#    rate = 0.1
+    rate = 0.001
+#    rate = math.e ** -6
 
     for i in range(0,repeat):
         for elk in range(len(expect)):
-
-            print "train input: %s expected: %s rate: %s" % (input[elk], expect[elk], rate)
             p.train(input[elk], expect[elk], rate)
-            rate = rate * .99
-
-            print(p.weight)
+            #rate = rate * .99
 
 
-    print "weights: %s" % p.weight
     print "training complete."
+    print "weights: %s" % p.weight
 
     # and now we use the trained perceptron
     # to evaluate the sets of data..
