@@ -28,7 +28,7 @@ class perceptron(object):
     def __init__(self, length):
         self.length = length
         self.weight = []
-        self.threshold = 0
+        self.threshold = .5
 
         # we add an extra input for required training bias
         # it makes the math actually work
@@ -89,6 +89,10 @@ def dot_product(a, b):
         i += 1
     return sum
 
+# lets use a beta of 1.0 first...
+def sigmoid(beta, x):
+    return 1.0/ (1.0 + math.exp(-beta*x))
+
 
 def main():
 
@@ -100,13 +104,13 @@ def main():
 
 
     # try to expose our perceptron to the training set 100 times
-    repeat = 50000
+    repeat = 1000
 
     # create a perceptron object and initialize weight values...
     # pass input/weight list length
     p = perceptron(1)
-#    rate = 0.1
-    rate = 0.001
+    rate = 0.1
+#    rate = 0.01
 #    rate = math.e ** -6
 
     for i in range(0,repeat):
